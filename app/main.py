@@ -11,8 +11,8 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Initialize Services
-mqtt_service = MQTTService()
 influx_service = InfluxService()
+mqtt_service = MQTTService(influx_service)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
