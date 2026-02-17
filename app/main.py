@@ -16,8 +16,13 @@ from app.services.mpc_service import MPCService
 
 # Initialize Services
 influx_service = InfluxService()
+# We need to break the circular dependency or use setter
+# Option: Initialize MQTTService, then set mpc_service later
 mqtt_service = MQTTService(influx_service)
 mpc_service = MPCService(influx_service)
+
+# Dependency Injection for Time Sync
+mqtt_service.mpc_service = mpc_service
 
 # Scheduler
 scheduler = AsyncIOScheduler()

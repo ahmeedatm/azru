@@ -1,0 +1,38 @@
+{
+    "name": "Printemps Ensoleillé",
+    "duration_days": 3,
+    "initial_temp": 20.0,
+    "weather": [
+        {
+            "t_min": 10,
+            "t_max": 18,
+            "nebulosity": 0.1
+        },
+        {
+            "t_min": 12,
+            "t_max": 20,
+            "nebulosity": 0.0
+        },
+        {
+            "t_min": 11,
+            "t_max": 19,
+            "nebulosity": 0.2
+        }
+    ],
+    "schedule": {
+        "occupancy": [
+            [
+                7,
+                8
+            ],
+            [
+                18,
+                22
+            ]
+        ]
+    },
+    "prices": {
+        "default": 0.15,
+        "peak": 0.25
+    }
+}

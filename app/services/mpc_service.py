@@ -1,6 +1,7 @@
 import logging
 import numpy as np
 import pandas as pd
+from datetime import datetime
 from gekko import GEKKO
 from app.config import settings
 from app.models.thermal_model import ThermalModel
@@ -14,13 +15,27 @@ class MPCService:
         self.model = ThermalModel()
         self.horizon = 24 * 4  # 24h with 15min steps = 96 steps
         self.dt = 900  # 15 min
+        self.current_time = datetime.now()
 
-    def get_mock_weather_forecast(self):
+    def update_time(self, iso_time: str):
+        """Update internal time from simulation clock."""
+        try:
+            self.current_time = datetime.fromisoformat(iso_time)
+            logger.debug(f"MPC Time updated: {self.current_time}")
+        except ValueError as e:
+            logger.error(f"Failed to parse time {iso_time}: {e}")
+
+    def get_mock_weather_forecast(self, start_time: datetime | None = None):
         """Mock weather forecast (sinusoidal temperature)."""
+        if start_time is None:
+             start_time = self.current_time
+             
         # Create a time range for the next 24h
         t = np.linspace(0, 24, self.horizon)
         # T_ext varies between 5°C (night) and 15°C (day)
-        T_ext = 10 + 5 * np.sin(2 * np.pi * (t - 8) / 24)
+        # Shift sin wave based on start_time hour
+        start_hour = start_time.hour
+        T_ext = 10 + 5 * np.sin(2 * np.pi * (t + start_hour - 8) / 24)
         return T_ext
 
     def get_mock_electricity_prices(self):

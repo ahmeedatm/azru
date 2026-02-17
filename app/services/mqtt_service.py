@@ -48,8 +48,19 @@ class MQTTService:
                                     tags={"location": location, "type": "valve"},
                                     fields=data
                                 )
+                        elif "sys" in parts and "clock" in parts:
+                            # home/sys/clock -> 2023-01-01T12:00:00
+                            # This is the master clock
+                            if hasattr(self, 'mpc_service') and self.mpc_service:
+                                self.mpc_service.update_time(payload_str)
                     except json.JSONDecodeError as e:
-                        logger.error(f"JSON Decode Error: {e}")
+                        # Handle raw strings like the clock
+                        if "clock" in topic:
+                            # Payload is ISO string e.g. "2023..."
+                            if hasattr(self, 'mpc_service') and self.mpc_service:
+                                self.mpc_service.update_time(payload_str)
+                        else:
+                            logger.error(f"JSON Decode Error: {e}")
                         
         except Exception as e:
             logger.error(f"MQTT Error: {e}")

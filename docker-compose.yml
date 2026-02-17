@@ -37,7 +37,7 @@ services:
     build: .
     container_name: iot_simulator
     restart: unless-stopped
-    command: [ "python", "-m", "app.simulate_sensors" ]
+    command: [ "python", "-m", "app.digital_twin.main" ]
     depends_on:
       - mosquitto
     environment:
