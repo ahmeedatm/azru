@@ -15,10 +15,12 @@ class InfluxService:
         )
         self.write_api = self.client.write_api(write_options=SYNCHRONOUS)
 
-    def write_data(self, measurement: str, tags: dict, fields: dict):
+    def write_data(self, measurement: str, tags: dict, fields: dict, timestamp=None):
         """Write a data point to InfluxDB."""
         try:
             point = Point(measurement)
+            if timestamp:
+                point.time(timestamp)
             for tag, value in tags.items():
                 point.tag(tag, value)
             for field, value in fields.items():

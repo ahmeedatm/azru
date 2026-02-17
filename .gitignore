@@ -8,3 +8,5 @@ env/
 .env
 
 __pycache__
+
+app/digital_twin/data

@@ -16,6 +16,12 @@ class MPCService:
         self.horizon = 24 * 4  # 24h with 15min steps = 96 steps
         self.dt = 900  # 15 min
         self.current_time = datetime.now()
+        self.is_auto_mode = True
+
+    def set_auto_mode(self, enabled: bool):
+        """Enable or disable MPC automatic control."""
+        self.is_auto_mode = enabled
+        logger.info(f"MPC Auto Mode set to: {self.is_auto_mode}")
 
     def update_time(self, iso_time: str):
         """Update internal time from simulation clock."""
@@ -65,6 +71,10 @@ class MPCService:
 
     def optimize(self):
         """Run MPC optimization."""
+        if not self.is_auto_mode:
+            logger.info("MPC is in MANUAL mode. Skipping optimization.")
+            return None
+
         logger.info("Starting MPC Optimization...")
         
         try:
@@ -90,8 +100,8 @@ class MPCService:
             Price = m.Param(value=Prices_forecast, name='Price')
             
             # Constants
-            R = settings.R
-            C = settings.C
+            R = settings.SIM_ROOM_R
+            C = settings.SIM_ROOM_C
             Area = settings.AREA
             Tmin = settings.T_MIN
             Tmax = settings.T_MAX

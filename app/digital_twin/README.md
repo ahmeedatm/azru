@@ -54,3 +54,22 @@ docker-compose up -d --build sensor-simulator
 | `home/sys/clock` | Sim -> Backend | Heure virtuelle (ISO format) |
 | `home/sensors/living_room/metrics` | Sim -> InfluxDB | Température, Conso, Solaire... |
 | `home/+/valve/set` | Backend -> Sim | Ordre d'ouverture vanne (0-100%) |
+
+## Interprétation des Graphiques 📈
+
+Pour valider que le simulateur se comporte de manière réaliste, observez les courbes sur Grafana :
+
+1.  **Inertie Thermique** :
+    *   La température intérieure (`T_int`, ligne verte) ne doit pas changer instantanément.
+    *   Si le chauffage s'arrête, elle doit descendre *doucement* (ex: perdre 1°C en 2-3h s'il fait froid dehors).
+
+2.  **Apport Solaire (Effet de Serre)** :
+    *   En journée, même sans chauffage, `T_int` doit remonter si `T_ext` remonte et s'il y a du "Soleil" (courbe jaune dans "Bilan Énergétique").
+    *   C'est visible surtout vers midi (12h00 simulé).
+
+3.  **Réaction du Chauffage** :
+    *   Quand la vanne s'ouvre (courbe rouge "Chauffage" monte), `T_int` doit commencer à monter après un léger délai.
+    *   La montée ne doit pas être verticale (ce n'est pas un grille-pain dans une boîte à chaussures !).
+
+4.  **Cohérence Météo** :
+    *   Vérifiez que `T_ext` (fond bleu) suit bien une courbe sinusoïdale (froid la nuit, plus chaud le jour).

@@ -6,8 +6,8 @@ class ThermalModel:
     Equation: T(t+1) = T(t) + (dt / C) * ((T_ext - T(t)) / R + P_heat)
     """
     def __init__(self):
-        self.R = settings.R
-        self.C = settings.C
+        self.R = settings.SIM_ROOM_R
+        self.C = settings.SIM_ROOM_C
         self.area = settings.AREA
 
     def predict_next_temperature(self, T_in: float, T_ext: float, Power: float, dt: float = 900) -> float:

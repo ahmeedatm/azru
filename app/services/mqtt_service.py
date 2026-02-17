@@ -1,6 +1,7 @@
-import asyncio
 import logging
 import json
+import asyncio
+from datetime import datetime
 from aiomqtt import Client
 from app.config import settings
 
@@ -35,14 +36,25 @@ class MQTTService:
                         if len(parts) >= 3:
                             if "sensors" in parts:
                                 location = parts[2]
+                                
+                                # Use sim_time from payload for InfluxDB timestamp (Sync with Simulation)
+                                sim_time = None
+                                if "sim_time" in data:
+                                    try:
+                                        sim_time = datetime.fromisoformat(data["sim_time"].replace('Z', '+00:00'))
+                                    except ValueError:
+                                        pass
+
                                 self.influx_service.write_data(
                                     measurement="sensors",
                                     tags={"location": location},
-                                    fields=data
+                                    fields=data,
+                                    timestamp=sim_time
                                 )
                             elif "valve" in parts and "set" in parts:
                                 # home/bureau/valve/set
                                 location = parts[1]
+                                
                                 self.influx_service.write_data(
                                     measurement="actuators",
                                     tags={"location": location, "type": "valve"},

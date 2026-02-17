@@ -1,12 +1,13 @@
 import math
 from datetime import datetime
+from app.config import settings
 
 class BuildingPhysics:
-    def __init__(self, R=0.5, C=1000000.0, area=20.0, window_area=4.0):
-        self.R = R  # Thermal Resistance (K.m2/W)
-        self.C = C  # Thermal Capacitance (J/K)
-        self.area = area
-        self.window_area = window_area
+    def __init__(self, R=None, C=None, area=None, window_area=None):
+        self.R = R if R is not None else settings.SIM_ROOM_R
+        self.C = C if C is not None else settings.SIM_ROOM_C
+        self.area = area if area is not None else settings.AREA
+        self.window_area = window_area if window_area is not None else settings.SIM_WINDOW_AREA
         self.solar_factor = 0.7  # G-value of windows
 
     def calculate_solar_gain(self, current_time: datetime, nebulosity: float) -> float:

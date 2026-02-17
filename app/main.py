@@ -67,15 +67,56 @@ app = FastAPI(
 async def force_optimization():
     """Trigger MPC optimization manually and publish to MQTT."""
     result = mpc_service.optimize()
+    if result is None:
+        return {"status": "skipped", "reason": "Manual Mode Active"}
     
     # Publish result to MQTT
     if "valve_position" in result:
         payload = json.dumps(result)
         topic = "home/bureau/valve/set"
+        # Since mqtt_service.client is initialized in mqtt_service, we might need to access it publicly or add a publish method
+        # Let's add a quick publish method to MQTTService or access client directly if possible
+        # Ideally MQTTService should handle publishing.
         await mqtt_service.client.publish(topic, payload) 
         logger.info(f"Published decision: {topic} -> {payload}")
         
     return result
+
+from pydantic import BaseModel
+
+class ValveControlRequest(BaseModel):
+    valve_position: int
+
+class ModeControlRequest(BaseModel):
+    auto_mode: bool
+
+@app.post("/control/valve")
+async def manual_valve_control(request: ValveControlRequest):
+    """Manually set valve position and switch to Manual Mode."""
+    # 1. Switch to Manual Mode
+    mpc_service.set_auto_mode(False)
+    
+    # 2. Publish Command
+    sim_time = mpc_service.current_time.isoformat()
+    payload = json.dumps({
+        "valve_position": request.valve_position, 
+        "source": "manual",
+        "sim_time": sim_time
+    })
+    topic = "home/bureau/valve/set" # TODO: Dynamic room
+    
+    if mqtt_service.client:
+        await mqtt_service.client.publish(topic, payload)
+        logger.info(f"Manual Command: {topic} -> {payload}")
+        return {"status": "success", "mode": "manual", "valve_position": request.valve_position}
+    else:
+        return {"status": "error", "message": "MQTT Client not connected"}
+
+@app.post("/control/mode")
+async def set_control_mode(request: ModeControlRequest):
+    """Switch between Auto (MPC) and Manual modes."""
+    mpc_service.set_auto_mode(request.auto_mode)
+    return {"status": "success", "auto_mode": request.auto_mode}
 
 @app.get("/health")
 async def health_check():
