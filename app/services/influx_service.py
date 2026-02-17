@@ -1,3 +1,4 @@
+from typing import Optional
 import logging
 from influxdb_client import InfluxDBClient, Point
 from influxdb_client.client.write_api import SYNCHRONOUS
@@ -28,5 +29,25 @@ class InfluxService:
         except Exception as e:
             logger.error(f"InfluxDB Write Error: {e}")
 
-    def close(self):
+        except Exception as e:
+            logger.error(f"InfluxDB Write Error: {e}")
+
+    def get_latest_data(self, measurement: str, location: str, field: str) -> Optional[float]:
+        """Get the last known value for a specific field."""
+        query = f'''
+        from(bucket: "{settings.INFLUXDB_BUCKET}")
+            |> range(start: -1h)
+            |> filter(fn: (r) => r["_measurement"] == "{measurement}")
+            |> filter(fn: (r) => r["location"] == "{location}")
+            |> filter(fn: (r) => r["_field"] == "{field}")
+            |> last()
+        '''
+        try:
+            result = self.client.query_api().query(org=settings.INFLUXDB_ORG, query=query)
+            if result and len(result) > 0 and len(result[0].records) > 0:
+                return result[0].records[0].get_value()
+            return None
+        except Exception as e:
+            logger.error(f"InfluxDB Read Error: {e}")
+            return None
         self.client.close()

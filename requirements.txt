@@ -3,3 +3,7 @@ uvicorn
 pydantic-settings
 aiomqtt
 influxdb-client
+gekko
+apscheduler
+pandas
+numpy

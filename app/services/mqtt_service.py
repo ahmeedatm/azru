@@ -30,15 +30,24 @@ class MQTTService:
                     try:
                         data = json.loads(payload_str)
                         # Topic: home/sensors/<location>/metrics
+                        # Topic: home/<location>/valve/set
                         parts = topic.split('/')
                         if len(parts) >= 3:
-                            location = parts[2]
-                            
-                            self.influx_service.write_data(
-                                measurement="sensors",
-                                tags={"location": location},
-                                fields=data
-                            )
+                            if "sensors" in parts:
+                                location = parts[2]
+                                self.influx_service.write_data(
+                                    measurement="sensors",
+                                    tags={"location": location},
+                                    fields=data
+                                )
+                            elif "valve" in parts and "set" in parts:
+                                # home/bureau/valve/set
+                                location = parts[1]
+                                self.influx_service.write_data(
+                                    measurement="actuators",
+                                    tags={"location": location, "type": "valve"},
+                                    fields=data
+                                )
                     except json.JSONDecodeError as e:
                         logger.error(f"JSON Decode Error: {e}")
                         
