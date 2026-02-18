@@ -40,10 +40,20 @@ class ScenarioLoader:
         }
 
     def get_price_at(self, day_index: int, hour: float) -> Dict[str, Any]:
-        """Get electricity price and color for a given time."""
+        """Get electricity price and tariff type (HP/HC) for a given time."""
         prices = self.data.get("prices", {})
-        default_price = prices.get("default", 0.15)
+        hp_price = prices.get("hp", 0.2516)
+        hc_price = prices.get("hc", 0.2068)
+        peak_hours = prices.get("peak_hours", [[6, 14], [17, 21]])
         
-        # Simple Logic: Check if peak hours
-        # TODO: Implement complex schedule
-        return {"price": default_price, "color": "BLUE"}
+        # Check if current hour falls within a peak period
+        is_peak = False
+        for start, end in peak_hours:
+            if start <= hour < end:
+                is_peak = True
+                break
+        
+        if is_peak:
+            return {"price": hp_price, "tariff": "HP"}
+        else:
+            return {"price": hc_price, "tariff": "HC"}

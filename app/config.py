@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     INFLUXDB_BUCKET: str
 
     # Simulation Config
-    SIM_SPEED_FACTOR: int = 120
+    SIM_SPEED_FACTOR: float = 50000
     SIM_TIME_STEP: int = 60
     SIM_SCENARIO_FILE: str = "app/digital_twin/scenarios/scenario_neige.json"
     SIM_START_DATE: str = "2026-02-17T00:00:00" # Fixed start date for reproducibility

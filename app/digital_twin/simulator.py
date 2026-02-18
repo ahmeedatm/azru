@@ -16,7 +16,6 @@ class Simulator:
     def __init__(self, scenario_file=None, speed_factor=None):
         self.scenario_file = scenario_file if scenario_file else settings.SIM_SCENARIO_FILE
         self.speed_factor = speed_factor if speed_factor else settings.SIM_SPEED_FACTOR
-        
         self.loader = ScenarioLoader(self.scenario_file)
         self.physics = BuildingPhysics() # Will use settings defaults
         
@@ -31,6 +30,9 @@ class Simulator:
         self.T_m = self.T_int 
         
         self.valve_pos = 0.0 # 0 to 100%
+        self.total_cost = 0.0  # Cumulative heating cost (€)
+        self.duration = timedelta(days=self.loader.data.get("duration_days", 3))
+        self.sim_start = self.current_sim_time
         self.running = True
         
     async def run(self):
@@ -55,6 +57,12 @@ class Simulator:
                     dt_sim = settings.SIM_TIME_STEP # e.g. 60 seconds
                     self.current_sim_time += timedelta(seconds=dt_sim)
                     
+                    # Check if simulation duration is reached
+                    if self.current_sim_time - self.sim_start >= self.duration:
+                        logger.info(f"Simulation terminée après {self.duration.days} jours | Coût total: {self.total_cost:.4f}€")
+                        self.running = False
+                        break
+                    
                     # 2. Get External Conditions
                     hour = self.current_sim_time.hour + self.current_sim_time.minute/60.0
                     total_days = (self.current_sim_time - datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)).days
@@ -62,6 +70,11 @@ class Simulator:
                     weather = self.loader.get_weather_at(total_days, hour)
                     T_ext = weather['temperature']
                     nebulosity = weather['nebulosity']
+                    
+                    # 2b. Get Electricity Tariff
+                    pricing = self.loader.get_price_at(total_days, hour)
+                    elec_price = pricing['price']   # €/kWh
+                    tariff_type = pricing['tariff']  # HP or HC
                     
                     # 3. Calculate Powers (for display/logging, logic is inside physics now)
                     # Heating Power (Watts) - purely for logging, physics recalculates this
@@ -84,8 +97,20 @@ class Simulator:
                         p_int=P_int
                     )
                     
-                    # 5. Publish State
-                    await self.publish_state(T_ext, P_heat_display, P_sol)
+                    # 4b. Simple Thermostat Control
+                    # Hysteresis: heat ON below T_MIN, OFF above T_MIN + 1°C
+                    if self.T_int < settings.T_MIN:
+                        self.valve_pos = 100.0
+                    elif self.T_int > settings.T_MIN + 1.0:
+                        self.valve_pos = 0.0
+                    
+                    # 5. Calculate Heating Cost
+                    # cost = Power(W) × time(h) × price(€/kWh) / 1000(W→kW)
+                    cost_step = P_heat_display * (dt_sim / 3600.0) * elec_price / 1000.0
+                    self.total_cost += cost_step
+                    
+                    # 6. Publish State
+                    await self.publish_state(T_ext, P_heat_display, P_sol, elec_price, cost_step, tariff_type)
                     
                     # 6. Wait (Real Time)
                     # We want dt_sim sim seconds = dt_sim / speed_factor real seconds
@@ -100,7 +125,8 @@ class Simulator:
             finally:
                 listener_task.cancel()
 
-    async def publish_state(self, T_ext: float, P_heat: float, P_sol: float):
+    async def publish_state(self, T_ext: float, P_heat: float, P_sol: float,
+                           elec_price: float, cost_step: float, tariff_type: str):
         # 1. Clock Sync
         await self.client.publish(settings.MQTT_TOPIC_CLOCK, self.current_sim_time.isoformat())
         
@@ -111,15 +137,18 @@ class Simulator:
         
         payload = {
             "temperature": round(T_measured, 2),
-            "mass_temperature": round(self.T_m, 2), # Inertia !!!
+            "mass_temperature": round(self.T_m, 2),
             "external_temperature": round(T_ext, 2),
             "power_consumption": round(P_heat, 2),
             "solar_power": round(P_sol, 2),
             "valve_position": self.valve_pos,
+            "electricity_price": round(elec_price, 4),
+            "heating_cost_step": round(cost_step, 6),
+            "heating_cost_cumulative": round(self.total_cost, 4),
             "sim_time": self.current_sim_time.isoformat()
         }
         await self.client.publish(settings.MQTT_TOPIC_METRICS, json.dumps(payload))
-        logger.info(f"Sim {self.current_sim_time.strftime('%H:%M')} | T_air={self.T_int:.1f} | T_mass={self.T_m:.1f} | Heat={P_heat:.0f}")
+        logger.info(f"Sim {self.current_sim_time.strftime('%H:%M')} | T={self.T_int:.1f} | Heat={P_heat:.0f}W | {tariff_type} {elec_price:.4f}€ | Total={self.total_cost:.4f}€")
 
     async def listen_for_commands(self):
         async for message in self.client.messages:

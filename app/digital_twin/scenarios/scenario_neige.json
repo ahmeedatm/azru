@@ -1,17 +1,183 @@
 {
-    "name": "Hiver Rigoureux",
-    "duration_days": 3,
-    "initial_temp": 18.0,
+    "name": "Hiver Rigoureux - 30 jours",
+    "duration_days": 30,
+    "initial_temp": 19.0,
     "weather": [
-        {"t_min": -5, "t_max": 2, "nebulosity": 0.8},
-        {"t_min": -8, "t_max": -1, "nebulosity": 0.5},
-        {"t_min": -2, "t_max": 5, "nebulosity": 0.9}
+        {
+            "t_min": -5,
+            "t_max": 2,
+            "nebulosity": 0.8
+        },
+        {
+            "t_min": -8,
+            "t_max": -1,
+            "nebulosity": 0.5
+        },
+        {
+            "t_min": -2,
+            "t_max": 5,
+            "nebulosity": 0.9
+        },
+        {
+            "t_min": -3,
+            "t_max": 3,
+            "nebulosity": 0.7
+        },
+        {
+            "t_min": -6,
+            "t_max": 0,
+            "nebulosity": 0.4
+        },
+        {
+            "t_min": -1,
+            "t_max": 6,
+            "nebulosity": 0.6
+        },
+        {
+            "t_min": 0,
+            "t_max": 7,
+            "nebulosity": 0.3
+        },
+        {
+            "t_min": -4,
+            "t_max": 1,
+            "nebulosity": 0.8
+        },
+        {
+            "t_min": -7,
+            "t_max": -2,
+            "nebulosity": 0.6
+        },
+        {
+            "t_min": -10,
+            "t_max": -3,
+            "nebulosity": 0.2
+        },
+        {
+            "t_min": -8,
+            "t_max": -1,
+            "nebulosity": 0.5
+        },
+        {
+            "t_min": -3,
+            "t_max": 4,
+            "nebulosity": 0.9
+        },
+        {
+            "t_min": -1,
+            "t_max": 5,
+            "nebulosity": 0.7
+        },
+        {
+            "t_min": 1,
+            "t_max": 8,
+            "nebulosity": 0.4
+        },
+        {
+            "t_min": -2,
+            "t_max": 3,
+            "nebulosity": 0.6
+        },
+        {
+            "t_min": -5,
+            "t_max": 1,
+            "nebulosity": 0.8
+        },
+        {
+            "t_min": -9,
+            "t_max": -2,
+            "nebulosity": 0.3
+        },
+        {
+            "t_min": -7,
+            "t_max": 0,
+            "nebulosity": 0.5
+        },
+        {
+            "t_min": -4,
+            "t_max": 2,
+            "nebulosity": 0.7
+        },
+        {
+            "t_min": -1,
+            "t_max": 6,
+            "nebulosity": 0.4
+        },
+        {
+            "t_min": 0,
+            "t_max": 8,
+            "nebulosity": 0.3
+        },
+        {
+            "t_min": 2,
+            "t_max": 10,
+            "nebulosity": 0.5
+        },
+        {
+            "t_min": -2,
+            "t_max": 5,
+            "nebulosity": 0.6
+        },
+        {
+            "t_min": -5,
+            "t_max": 0,
+            "nebulosity": 0.8
+        },
+        {
+            "t_min": -8,
+            "t_max": -2,
+            "nebulosity": 0.4
+        },
+        {
+            "t_min": -6,
+            "t_max": 1,
+            "nebulosity": 0.7
+        },
+        {
+            "t_min": -3,
+            "t_max": 4,
+            "nebulosity": 0.5
+        },
+        {
+            "t_min": -1,
+            "t_max": 7,
+            "nebulosity": 0.3
+        },
+        {
+            "t_min": 0,
+            "t_max": 9,
+            "nebulosity": 0.4
+        },
+        {
+            "t_min": -4,
+            "t_max": 3,
+            "nebulosity": 0.6
+        }
     ],
     "schedule": {
-        "occupancy": [ [7, 8], [18, 22] ]
+        "occupancy": [
+            [
+                7,
+                8
+            ],
+            [
+                18,
+                22
+            ]
+        ]
     },
     "prices": {
-        "default": 0.15,
-        "peak": 0.25
+        "hp": 0.2516,
+        "hc": 0.2068,
+        "peak_hours": [
+            [
+                6,
+                14
+            ],
+            [
+                17,
+                21
+            ]
+        ]
     }
 }
