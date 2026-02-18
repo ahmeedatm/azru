@@ -59,7 +59,7 @@ class MPCService:
         """Retrieve last known temperature from InfluxDB."""
         temp = self.influx_service.get_latest_data(
             measurement="sensors",
-            location="living_room", # TODO: Make this dynamic or configurable
+            location="chambre",
             field="temperature"
         )
         if temp is not None:

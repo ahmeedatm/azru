@@ -24,7 +24,12 @@ class Simulator:
         # Start at current wall-clock time. 
         # Since speed > 1, simulation will drift into the future.
         self.current_sim_time = datetime.now().replace(microsecond=0)
+        
+        # Initial Temperatures
         self.T_int = self.loader.data.get("initial_temp", settings.SIM_INITIAL_TEMP)
+        # Assume Mass Temperature starts equal to Air Temperature
+        self.T_m = self.T_int 
+        
         self.valve_pos = 0.0 # 0 to 100%
         self.running = True
         
@@ -32,7 +37,7 @@ class Simulator:
         async with Client(hostname=settings.MQTT_BROKER_HOST, port=settings.MQTT_PORT, 
                           username=settings.MQTT_USERNAME, password=settings.MQTT_PASSWORD) as client:
             self.client = client
-            logger.info(f"Connected to MQTT ({settings.MQTT_BROKER_HOST}). Speed: {self.speed_factor}x")
+            logger.info(f"Connected to MQTT ({settings.MQTT_BROKER_HOST}). Speed: {self.speed_factor}x. Physics: ISO 13790")
             
             # Subscribe to valve control
             # Topic e.g. "home/+/valve/set"
@@ -58,23 +63,29 @@ class Simulator:
                     T_ext = weather['temperature']
                     nebulosity = weather['nebulosity']
                     
-                    # 3. Calculate Powers
-                    # Heating
-                    P_heat = (self.valve_pos / 100.0) * settings.SIM_HEATER_MAX_POWER
+                    # 3. Calculate Powers (for display/logging, logic is inside physics now)
+                    # Heating Power (Watts) - purely for logging, physics recalculates this
+                    P_heat_display = (self.valve_pos / 100.0) * settings.SIM_HEATER_MAX_POWER
                     
-                    # Solar
+                    # Solar - purely for logging
                     P_sol = self.physics.calculate_solar_gain(self.current_sim_time, nebulosity)
                     
-                    # Internal (Simplified: 200W if occupied)
-                    P_int = 0.0 # TODO: Schedule logic
+                    # Internal (Simplified: 0W for now)
+                    P_int = 0.0
                     
-                    # 4. Physics Step
-                    self.T_int = self.physics.calculate_next_temp(
-                        self.T_int, T_ext, P_heat, P_int, P_sol, dt_sim
+                    # 4. Physics Step (ISO 13790)
+                    # Pass previous states and current forcing factors
+                    self.T_int, self.T_m = self.physics.calculate_next_state(
+                        t_air_prev=self.T_int,
+                        t_m_prev=self.T_m,
+                        t_ext=T_ext,
+                        valve_pos=self.valve_pos,
+                        p_sol=P_sol,
+                        p_int=P_int
                     )
                     
                     # 5. Publish State
-                    await self.publish_state(T_ext, P_heat, P_sol)
+                    await self.publish_state(T_ext, P_heat_display, P_sol)
                     
                     # 6. Wait (Real Time)
                     # We want dt_sim sim seconds = dt_sim / speed_factor real seconds
@@ -100,6 +111,7 @@ class Simulator:
         
         payload = {
             "temperature": round(T_measured, 2),
+            "mass_temperature": round(self.T_m, 2), # Inertia !!!
             "external_temperature": round(T_ext, 2),
             "power_consumption": round(P_heat, 2),
             "solar_power": round(P_sol, 2),
@@ -107,7 +119,7 @@ class Simulator:
             "sim_time": self.current_sim_time.isoformat()
         }
         await self.client.publish(settings.MQTT_TOPIC_METRICS, json.dumps(payload))
-        logger.info(f"Sim {self.current_sim_time.strftime('%H:%M')} | T_int={self.T_int:.1f} | T_ext={T_ext:.1f} | Heat={P_heat:.0f}")
+        logger.info(f"Sim {self.current_sim_time.strftime('%H:%M')} | T_air={self.T_int:.1f} | T_mass={self.T_m:.1f} | Heat={P_heat:.0f}")
 
     async def listen_for_commands(self):
         async for message in self.client.messages:

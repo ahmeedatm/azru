@@ -38,7 +38,7 @@ class InfluxService:
         """Get the last known value for a specific field."""
         query = f'''
         from(bucket: "{settings.INFLUXDB_BUCKET}")
-            |> range(start: -1h)
+            |> range(start: -30d)
             |> filter(fn: (r) => r["_measurement"] == "{measurement}")
             |> filter(fn: (r) => r["location"] == "{location}")
             |> filter(fn: (r) => r["_field"] == "{field}")
