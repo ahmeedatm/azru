@@ -39,7 +39,11 @@ class Zone(object):
                  cooling_supply_system=supply_system.HeatPumpAir,
                  heating_emission_system=emission_system.NewRadiators,
                  cooling_emission_system=emission_system.AirConditioning,
+                 dt=3600,
                  ):
+
+        # Simulation timestep [seconds]. ISO 13790 uses 3600s (1h) by default.
+        self.dt = dt
 
         # Zone Dimensions
         self.window_area = window_area  # [m2] Window Area
@@ -463,8 +467,8 @@ class Zone(object):
         # (C.4) in [C.3 ISO 13790]
         """
 
-        self.t_m_next = ((t_m_prev * ((self.c_m / 3600.0) - 0.5 * (self.h_tr_3 + self.h_tr_em))) +
-                         self.phi_m_tot) / ((self.c_m / 3600.0) + 0.5 * (self.h_tr_3 + self.h_tr_em))
+        self.t_m_next = ((t_m_prev * ((self.c_m / self.dt) - 0.5 * (self.h_tr_3 + self.h_tr_em))) +
+                         self.phi_m_tot) / ((self.c_m / self.dt) + 0.5 * (self.h_tr_3 + self.h_tr_em))
 
     def calc_phi_m_tot(self, t_out):
         """

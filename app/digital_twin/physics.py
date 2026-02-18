@@ -45,6 +45,7 @@ class BuildingPhysics:
             thermal_capacitance_per_floor_area=c_m_factor,
             t_set_heating=settings.T_MIN,
             t_set_cooling=settings.T_MAX,
+            dt=settings.SIM_TIME_STEP,
         )
         
     def calculate_solar_gain(self, current_time: datetime, nebulosity: float) -> float:
