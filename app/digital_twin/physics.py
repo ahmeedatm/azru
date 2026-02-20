@@ -43,6 +43,7 @@ class BuildingPhysics:
             ach_infl=0.2, # Infiltration
             ventilation_efficiency=0.0,
             thermal_capacitance_per_floor_area=c_m_factor,
+            heating_emission_system=emission_system.FloorHeating, # Chauffe la masse/surface au lieu de brûler l'air
             t_set_heating=settings.T_MIN,
             t_set_cooling=settings.T_MAX,
             dt=settings.SIM_TIME_STEP,

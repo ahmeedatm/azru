@@ -2,9 +2,10 @@ fastapi
 uvicorn
 pydantic-settings
 aiomqtt
-influxdb-client
+influxdb-client[async]
 gekko
 apscheduler
 pandas
 numpy
-
+httpx
+aiohttp

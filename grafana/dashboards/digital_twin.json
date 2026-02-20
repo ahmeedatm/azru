@@ -41,11 +41,11 @@
                                 "value": 0
                             },
                             {
-                                "color": "#4CAF50",
+                                "color": "blue",
                                 "value": 18
                             },
                             {
-                                "color": "#FF9800",
+                                "color": "green",
                                 "value": 22
                             },
                             {
@@ -254,10 +254,6 @@
                             {
                                 "id": "displayName",
                                 "value": "⚡ Tarif"
-                            },
-                            {
-                                "id": "custom.width",
-                                "value": 80
                             }
                         ]
                     }
@@ -274,7 +270,7 @@
                 "colorMode": "background_solid",
                 "graphMode": "area",
                 "justifyMode": "auto",
-                "orientation": "horizontal",
+                "orientation": "auto",
                 "percentChangeColorMode": "standard",
                 "reduceOptions": {
                     "calcs": [
@@ -1037,7 +1033,7 @@
                         "steps": [
                             {
                                 "color": "green",
-                                "value": null
+                                "value": 0
                             }
                         ]
                     },
@@ -1191,5 +1187,5 @@
     "timezone": "browser",
     "title": "🏠 Jumeau Numérique – Digital Twin",
     "uid": "digital-twin-v1",
-    "version": 1
+    "version": 3
 }
